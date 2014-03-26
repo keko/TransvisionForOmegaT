@@ -4,4 +4,4 @@
 *.class
 # Ignore build and dist folders
 build/**/*
-dist/**/*
+dist/*
