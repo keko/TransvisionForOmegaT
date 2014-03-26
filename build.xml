@@ -1,0 +1,72 @@
+<project name="Transvision For OmegaT" default="jar" basedir=".">
+
+    <description>Xenerate a plugin of Transvision for OmegaT</description>
+
+    <!-- set global properties for this build -->
+    <property name="src" value="src" />
+    <property name="src-stub" value="src-stub" />
+    <property name="build" value="build" />
+    <property name="dist" location="dist"/>
+
+    <target name="init">
+        <!-- Variables used to identify to version of build -->
+        <property file="src/org/omegat/Version.properties"/>
+        <condition property="updatenr"
+                   value="0${update}"
+                   else="${update}">
+           <length string="${update}"
+                   length="1"/>
+        </condition>
+        <condition property="distversion"
+                   value="${version}"
+                   else="${version}_${updatenr}">
+           <equals arg1="${updatenr}" arg2="00"/>
+        </condition>
+        <!-- Path to where are the libraries -->
+        <path id="path.libs">
+            <fileset dir="./lib">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+        <mkdir dir="${build}"/>
+        <!-- Create the build directory structure used by compile -->
+       <mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="init" description="compile the source " >
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac srcdir="${src-stub}" destdir="${build}" includeAntRuntime="false"/>
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac srcdir="${src}" destdir="${build}"  includeAntRuntime="false">
+            <classpath refid="path.libs"/>
+        </javac>
+        <!-- Copy the internationalization files -->
+        <copy todir="${build}/org/omegat">
+            <fileset dir="${src}/org/omegat" includes="*.properties"/>
+        </copy>
+    </target>
+
+    <target name="jar" depends="compile" description="generate the distribution" >
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+
+        <!-- Put everything in ${build} into the TransvisionForOmegaT.jar file -->
+        <jar jarfile="${dist}/TransvisionForOmegaT_${distversion}.jar" basedir="${build}">
+           
+            <manifest>
+                <attribute name="License" value="GNU Public License version 3 or later"/>
+                <attribute name="OmegaT-Plugin" value="true"/>
+                <section name="org.omegat.plugins.machinetranslators.TransvisionTranslate">
+                    <attribute name="OmegaT-Plugin" value="MachineTranslator"/>
+                </section>
+            </manifest> 
+        </jar>
+    </target>
+
+    <target name="clean" description="clean up" >
+        <!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+    </target>
+
+</project>
