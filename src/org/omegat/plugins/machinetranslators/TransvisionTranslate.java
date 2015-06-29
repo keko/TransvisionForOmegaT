@@ -49,7 +49,7 @@ import org.omegat.util.WikiGet;
 public class TransvisionTranslate extends BaseTranslate {
 
     protected static String GT_URL = "http://transvision.mozfr.org/?sourcelocale=#sourceLang#&locale=#targetLang#&repo=#repo#&search_type=entities&recherche=";
-    //protected static String GT_S = "&search_type=strings&perfect_match=perfect_match&recherche=";
+    protected static String GT_S = "http://transvision.mozfr.org/?sourcelocale=#sourceLang#&locale=#targetLang#&repo=#repo#&search_type=strings&perfect_match=perfect_match&recherche=";
     //protected static String GT_E = "&search_type=entities&whole_word=whole_word&recherche=";
     protected static String GT_URL2 = "&json"; //NOI18N
     protected static String MARK_BEG = "\":\""; //NOI18N
@@ -87,8 +87,6 @@ public class TransvisionTranslate extends BaseTranslate {
         // A marca de inicio MARK_BEG podemos axustala a traves do ficheiro, da chave, e da cadea
         // orixe para obter a traducion exacta noutro idioma para o que buscamos
         String searchesList = prefs.get("locales", null);
-        // Nestes momentos o idioma de orixe é fixo, sempre en-US
-        String aux = GT_URL.replace("#sourceLang#", "en-US");
         String url;
         String translations = "";
         String entity = URLEncoder.encode(currentEntry.getKey().file + ":" + currentEntry.getKey().id, "UTF-8");        
@@ -97,12 +95,45 @@ public class TransvisionTranslate extends BaseTranslate {
         {
             String [] datos = pair.split(":");
             if (datos.length==2){
-                url = aux.replace("#repo#", datos[0]).replace("#targetLang#", datos[1]);
-                translations += datos[0] + ":" + datos[1] + "\t-  ";
-                translations += getTranslation(url + entity + GT_URL2,"nada") + "\n";
+                if ( datos[0].equals("mozilla_org") )
+                {
+                    String aux = GT_S.replace("#sourceLang#", "en-GB");
+                    url = aux.replace("#repo#", datos[0]).replace("#targetLang#", datos[1]);
+                    translations += datos[0] + ":" + datos[1] + "\t-  ";
+                    translations += getTranslation(url + convertCharacters(URLEncoder.encode(text, "UTF-8")) + GT_URL2,"nada") + "\n";
+                }
+                else {
+                    String aux = GT_URL.replace("#sourceLang#", "en-US");
+                    url = aux.replace("#repo#", datos[0]).replace("#targetLang#", datos[1]);
+                    translations += datos[0] + ":" + datos[1] + "\t-  ";
+                    translations += getTranslation(url + entity + GT_URL2,"nada") + "\n";
+                }
             }
         }
         return translations;
+    }
+    
+    private String convertCharacters(String url) {
+        
+        // Before: Reminder - Replace & ---> (%26) by %26amp%3B
+        // url = url.replace("%26","%26amp%3B");
+        
+        // Before: Reminder - Replace < ---> (%3C) by %26lt%3B
+        // url = url.replace("%3C","%26lt%3B");
+        // Now: No neccesary - Replace < ---> (%3C) by <
+        // url = url.replace("%3C","<"); 
+        
+        // Before: Reminder - Replace > ---> (%3E) by %26gt%3B
+        // url = url.replace("%3E","%26gt%3B");
+        // Now: No neccesary - Replace > ---> (%3E) by >
+        //url = url.replace("%3E",">");
+        
+        // Before: Reminder - Replace " ---> (%22) by %26quot%3B
+        // url = url.replace("%22", "%26quot%3B");
+        // Now: No neccesary - Replace " ---> (%22) by "
+        //url = url.replace("%22","\"");
+        
+        return url;
     }
 
     private String getTranslation(String searchUrl, String strPattern) throws Exception {
