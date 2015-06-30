@@ -48,16 +48,16 @@ import org.omegat.util.WikiGet;
  */
 public class TransvisionTranslate extends BaseTranslate {
 
-    protected static String GT_URL = "http://transvision.mozfr.org/?sourcelocale=#sourceLang#&locale=#targetLang#&repo=#repo#&search_type=entities&recherche=";
-    protected static String GT_S = "http://transvision.mozfr.org/?sourcelocale=#sourceLang#&locale=#targetLang#&repo=#repo#&search_type=strings&perfect_match=perfect_match&recherche=";
-    //protected static String GT_E = "&search_type=entities&whole_word=whole_word&recherche=";
-    protected static String GT_URL2 = "&json"; //NOI18N
+    protected static String GT_URL = "http://transvision-beta.mozfr.org/api/v1/search/#type_search#/#repo#/#sourceLang#/#targetLang#/";
+    protected static String GT_OP =   "/?case_sensitive=1&perfect_match=1";
     protected static String MARK_BEG = "\":\""; //NOI18N
     protected static String MARK_END = "\"}"; //NOI18N
+    protected static Pattern RE_UNTRANSLATED = Pattern.compile("\\[\\]"); //NOI18N
     protected static Pattern RE_UNICODE = Pattern.compile("\\\\u([0-9A-Fa-f]{4})"); //NOI18N
     protected static Pattern RE_HTML = Pattern.compile("&#([0-9]+);"); //NOI18N
     protected static Pattern RE_DETAILS = Pattern.compile("\"responseDetails\":\"([^\"]+)"); //NOI18N
     protected static Pattern RE_STATUS = Pattern.compile("\"responseStatus\":([0-9]+)"); //NOI18N
+    protected static Pattern ERROR_REPO = Pattern.compile("\\{\"error\":\"The repo queried (.*) doesn't exist.\"\\}");
 
     public TransvisionTranslate() {
         JMenuItem item = new JMenuItem(transvision.getString("TRANSVISION_SETTINGS"));
@@ -84,12 +84,10 @@ public class TransvisionTranslate extends BaseTranslate {
     @Override
     protected String translate(Language sLang, Language tLang, String text) throws Exception {
         SourceTextEntry currentEntry = Core.getEditor().getCurrentEntry();
-        // A marca de inicio MARK_BEG podemos axustala a traves do ficheiro, da chave, e da cadea
-        // orixe para obter a traducion exacta noutro idioma para o que buscamos
         String searchesList = prefs.get("locales", null);
         String url;
         String translations = "";
-        String entity = URLEncoder.encode(currentEntry.getKey().file + ":" + currentEntry.getKey().id, "UTF-8");        
+        String entity = URLEncoder.encode(currentEntry.getKey().file + ":" + currentEntry.getKey().id, "UTF-8"); 
         String [] list = searchesList.split(";");
         for(String pair : list)
         {
@@ -97,17 +95,17 @@ public class TransvisionTranslate extends BaseTranslate {
             if (datos.length==2){
                 if ( datos[0].equals("mozilla_org") )
                 {
-                    String aux = GT_S.replace("#sourceLang#", "en-GB");
-                    url = aux.replace("#repo#", datos[0]).replace("#targetLang#", datos[1]);
-                    translations += datos[0] + ":" + datos[1] + "\t-  ";
-                    translations += getTranslation(url + convertCharacters(URLEncoder.encode(text, "UTF-8")) + GT_URL2,"nada") + "\n";
+                    url = GT_URL.replace("#type_search#","strings").replace("#sourceLang#", "en-GB");
+                    url += convertCharacters(URLEncoder.encode(text, "UTF-8"));
                 }
                 else {
-                    String aux = GT_URL.replace("#sourceLang#", "en-US");
-                    url = aux.replace("#repo#", datos[0]).replace("#targetLang#", datos[1]);
-                    translations += datos[0] + ":" + datos[1] + "\t-  ";
-                    translations += getTranslation(url + entity + GT_URL2,"nada") + "\n";
+                    url = GT_URL.replace("#type_search#","entities").replace("#sourceLang#", "en-US");
+                    url += convertCharacters(URLEncoder.encode(entity, "UTF-8"));
                 }
+                translations += datos[0] + ":" + datos[1] + "\t-  ";
+                url = url.replace("#repo#", datos[0]).replace("#targetLang#", datos[1]);
+                url += GT_OP;
+                translations += getTranslation(url,"nada") + "\n";
             }
         }
         return translations;
@@ -144,7 +142,6 @@ public class TransvisionTranslate extends BaseTranslate {
         } catch (IOException e) {
             return e.getLocalizedMessage();
         }
-
         while (true) {
             Matcher m = RE_UNICODE.matcher(v);
             if (!m.find()) {
@@ -155,11 +152,12 @@ public class TransvisionTranslate extends BaseTranslate {
             v = v.replace(g, Character.toString(c));
         }
 
+/*
         v = v.replace("&quot;", "&#34;");
         v = v.replace("&nbsp;", "&#160;");
         v = v.replace("&amp;", "&#38;");
         v = v.replace("\\\"", "\"");
-
+*/
         while (true) {
             Matcher m = RE_HTML.matcher(v);
             if (!m.find()) {
@@ -170,9 +168,16 @@ public class TransvisionTranslate extends BaseTranslate {
             v = v.replace(g, Character.toString(c));
         }
 
+        v = v.replace ("\\/","/");
+        
         int beg = v.indexOf(MARK_BEG) + MARK_BEG.length();
         int end = v.indexOf(MARK_END, beg);
+
         if (end < 0) {
+          //  if ((ERROR_REPO.matcher(v).matches()))
+                
+        //if ((RE_UNTRANSLATED.matcher(v).matches())
+            
             //no translation found. e.g. {"responseData":{"translatedText":null},"responseDetails":"Not supported pair","responseStatus":451}
             Matcher m = RE_DETAILS.matcher(v);
             if (!m.find()) {
