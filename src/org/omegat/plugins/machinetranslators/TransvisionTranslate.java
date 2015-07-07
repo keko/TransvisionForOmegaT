@@ -47,8 +47,8 @@ import org.omegat.util.WikiGet;
  * @author Enrique Estevez
  */
 public class TransvisionTranslate extends BaseTranslate {
-
-    protected static String GT_URL = "http://transvision-beta.mozfr.org/api/v1/search/#type_search#/#repo#/#sourceLang#/#targetLang#/";
+    // The queries have to be with the https protocol
+    protected static String GT_URL = "https://transvision-beta.mozfr.org/api/v1/search/#type_search#/#repo#/#sourceLang#/#targetLang#/";
     protected static String GT_OP =   "/?case_sensitive=1&perfect_match=1";
     protected static String MARK_BEG = "\":\""; //NOI18N
     protected static String MARK_END = "\"}"; //NOI18N
@@ -169,7 +169,6 @@ public class TransvisionTranslate extends BaseTranslate {
         }
 
         v = v.replace ("\\/","/");
-        
         int beg = v.indexOf(MARK_BEG) + MARK_BEG.length();
         int end = v.indexOf(MARK_END, beg);
 
