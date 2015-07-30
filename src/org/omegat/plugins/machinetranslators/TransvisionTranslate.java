@@ -48,7 +48,9 @@ import org.omegat.util.WikiGet;
  */
 public class TransvisionTranslate extends BaseTranslate {
     // The queries have to be with the https protocol
-    protected static String GT_URL = "https://transvision-beta.mozfr.org/api/v1/search/#type_search#/#repo#/#sourceLang#/#targetLang#/";
+    // The URL transvision.mozfr.org has the repository more updated
+    // Mozilla.org searches now use en-US instead of en-GB as source locale (v 3.6 of Transvision--2015/01/22)
+    protected static String GT_URL = "https://transvision.mozfr.org/api/v1/search/#type_search#/#repo#/en-US/#targetLang#/";
     protected static String GT_OP =   "/?case_sensitive=1&perfect_match=1";
     protected static String MARK_BEG = "\":\""; //NOI18N
     protected static String MARK_END = "\"}"; //NOI18N
@@ -95,11 +97,11 @@ public class TransvisionTranslate extends BaseTranslate {
             if (datos.length==2){
                 if ( datos[0].equals("mozilla_org") )
                 {
-                    url = GT_URL.replace("#type_search#","strings").replace("#sourceLang#", "en-GB");
+                    url = GT_URL.replace("#type_search#","strings");
                     url += convertCharacters(URLEncoder.encode(text, "UTF-8"));
                 }
                 else {
-                    url = GT_URL.replace("#type_search#","entities").replace("#sourceLang#", "en-US");
+                    url = GT_URL.replace("#type_search#","entities");
                     url += convertCharacters(URLEncoder.encode(entity, "UTF-8"));
                 }
                 translations += datos[0] + ":" + datos[1] + "\t-  ";
