@@ -1,3 +1,8 @@
+TransvisionForOmegaT 2.1 (2018-08-29)
+----------------------------------------------------------------------
+Improvement in obtaining translations when searching through the text.
+In the gecko_strings repository search for entities. In the others it
+searches for the text.
 ----------------------------------------------------------------------
 TransvisionForOmegaT 2.0_01 (2014-07-07)
 ----------------------------------------------------------------------

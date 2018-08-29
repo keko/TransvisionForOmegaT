@@ -2,8 +2,8 @@
 # TransvisionForOmegaT - Plugin for OmegaT which get the translations
 # 	          from Transvision Webservice. 
 #
-# Copyright (C) 2014 Enrique Estevez (keko.gl@gmail.com)
-#               Home page: 
+# Copyright (C) 2014-2018 Enrique Estevez (keko.gl@gmail.com)
+#               Home page: https://github.com/keko/TransvisionForOmegaT
 #
 # This file is part of TransvisionForOmegaT.
 #
@@ -95,20 +95,20 @@ public class TransvisionTranslate extends BaseTranslate {
         {
             String [] datos = pair.split(":");
             if (datos.length==2){
-                if ( datos[0].equals("mozilla_org") )
+                if ( datos[0].equals("gecko_strings"))
                 {
-                    url = GT_URL.replace("#type_search#","strings");
-                    url += convertCharacters(URLEncoder.encode(text, "UTF-8"));
-                }
-                else {
                     url = GT_URL.replace("#type_search#","entities");
                     url += convertCharacters(URLEncoder.encode(entity, "UTF-8"));
+                }
+                else {
+                    url = GT_URL.replace("#type_search#","strings");
+                    url += convertCharacters(URLEncoder.encode(text, "UTF-8"));
                 }
                 translations += datos[0] + ":" + datos[1] + "\t-  ";
                 url = url.replace("#repo#", datos[0]).replace("#targetLang#", datos[1]);
                 url += GT_OP;
-                translations += getTranslation(url,"nada") + "\n";
-            }
+                translations += getTranslation(url,text) + "\n";
+            }            
         }
         return translations;
     }
@@ -171,9 +171,18 @@ public class TransvisionTranslate extends BaseTranslate {
         }
 
         v = v.replace ("\\/","/");
+        String [] t_list = v.split(",\"");
+        String patron = "\"" + strPattern + "\"";
+        for(String resultados : t_list)
+        {
+            if ( resultados.contains(patron) )
+            {
+                v = resultados;
+            }
+        }
         int beg = v.indexOf(MARK_BEG) + MARK_BEG.length();
         int end = v.indexOf(MARK_END, beg);
-
+        
         if (end < 0) {
           //  if ((ERROR_REPO.matcher(v).matches()))
                 
